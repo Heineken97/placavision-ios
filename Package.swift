@@ -13,7 +13,8 @@ let package = Package(
             path: "Sources/Placavision",
             sources: [
                 "Config",
-                "Data",
+                "Data/APIService.swift",
+                "Data/Repository.swift",
                 "Models",
                 "Services/Auth",
                 "Utils"
