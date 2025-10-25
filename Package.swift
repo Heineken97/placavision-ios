@@ -12,15 +12,15 @@ let package = Package(
             name: "Placavision",
             path: "Sources/Placavision",
            sources: [
-                "Config/APIConfig.swift",
-                "Config/ServerConfig.swift",
+                "config/APIConfig.swift",
+                "config/ServerConfig.swift",
                 "data/APIService.swift",
                 "data/Repository.swift",
-                "Models/User.swift",
-                "Models/Report.swift",
-                "Models/GpsResponse.swift",
-                "Services/Auth/AuthService.swift",
-                "Utils/FileHelper.swift",
+                "models/User.swift",
+                "models/Report.swift",
+                "models/GpsResponse.swift",
+                "services/auth/AuthService.swift",
+                "utils/FileHelper.swift",
             ],
             resources: [
                 .process("Resources")
