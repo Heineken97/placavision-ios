@@ -11,9 +11,9 @@ let package = Package(
         .target(
             name: "Placavision",
             path: "Sources/Placavision",
-            sources: [
+           sources: [
                 "Config",
-                "Data",
+                "data",
                 "Models",
                 "Services/Auth",
                 "Utils"
