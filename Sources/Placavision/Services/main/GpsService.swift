@@ -1,56 +1,67 @@
 import Foundation
 
+/// GPS polling service implemented without using Swift concurrency APIs
+/// to keep compatibility with older deployment targets.
 public final class GpsService {
     private let repository = Repository()
-    private var pollingTask: Task<Void, Never>?
+    private var timer: DispatchSourceTimer?
     private var locationObtained = false
+    private let queue = DispatchQueue(label: "com.placavision.gps", qos: .background)
 
     public init() {}
 
     /// Inicia el ciclo de sondeo GPS hasta obtener una ubicación válida.
     public func startPolling(update: @escaping (GpsStatus) -> Void) {
-        pollingTask?.cancel()
+        // cancel existing
+        timer?.cancel()
+        timer = nil
         locationObtained = false
         update(.searching)
 
-        pollingTask = Task {
-            while !Task.isCancelled && !locationObtained {
-                let success = await fetchLocation(update: update)
+        let t = DispatchSource.makeTimerSource(queue: queue)
+        t.schedule(deadline: .now(), repeating: .seconds(5), leeway: .milliseconds(200))
+        t.setEventHandler { [weak self] in
+            guard let self = self, !self.locationObtained else { return }
+            self.fetchLocation { success, status in
                 if success {
-                    locationObtained = true
-                    update(.success)
-                    break
+                    self.locationObtained = true
+                    DispatchQueue.main.async {
+                        update(.location(lat: status.lat, lon: status.lon, alt: status.alt))
+                        update(.success)
+                    }
+                    self.timer?.cancel()
+                    self.timer = nil
+                } else {
+                    DispatchQueue.main.async {
+                        update(status.fallback)
+                    }
                 }
-                try? await Task.sleep(nanoseconds: 5_000_000_000) // 5 segundos
             }
         }
+        timer = t
+        t.resume()
     }
 
     /// Cancela el ciclo de sondeo.
     public func cancelPolling() {
-        pollingTask?.cancel()
+        timer?.cancel()
+        timer = nil
     }
 
-    /// Llama al backend para obtener la ubicación GPS.
-    private func fetchLocation(update: @escaping (GpsStatus) -> Void) async -> Bool {
-        return await withCheckedContinuation { continuation in
-            repository.getGpsLocation { result in
-                switch result {
-                case .success(let gpsResponse):
-                    if let data = gpsResponse.data,
-                       let lat = data.latitude,
-                       let lon = data.longitude,
-                       lat != 0.0, lon != 0.0 {
-                        update(.location(lat: lat, lon: lon, alt: data.altitude ?? 0.0))
-                        continuation.resume(returning: true)
-                    } else {
-                        update(.waiting)
-                        continuation.resume(returning: false)
-                    }
-                case .failure(let error):
-                    update(.error("Error: \(error.localizedDescription)"))
-                    continuation.resume(returning: false)
+    private func fetchLocation(completion: @escaping (Bool, (lat: Double, lon: Double, alt: Double, fallback: GpsStatus)) -> Void) {
+        repository.getGpsLocation { result in
+            switch result {
+            case .success(let gpsResponse):
+                if let data = gpsResponse.data,
+                   let lat = data.latitude,
+                   let lon = data.longitude,
+                   lat != 0.0, lon != 0.0 {
+                    completion(true, (lat, lon, data.altitude ?? 0.0, .waiting))
+                } else {
+                    completion(false, (0, 0, 0, .waiting))
                 }
+            case .failure(let error):
+                completion(false, (0, 0, 0, .error("Error: \(error.localizedDescription)")))
             }
         }
     }

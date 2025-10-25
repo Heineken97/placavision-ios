@@ -61,8 +61,8 @@ public final class EditProfileService {
             correo: email,
             contrasena: newPassword?.isEmpty == false ? newPassword! : currentUser.contrasena ?? "",
             nombre_usuario: username,
-            telefono: phone,
             identificador_nacional: nationalId,
+            telefono: phone,
             role: currentUser.role ?? "ios_device"
         )
 

@@ -34,6 +34,14 @@ public final class Repository {
         APIService.addPlate(authToken: getAuthToken(), report: report, completion: completion)
     }
 
+    public func getPlates(completion: @escaping (Result<Data, Error>) -> Void) {
+        APIService.getPlates(authToken: getAuthToken(), completion: completion)
+    }
+
+    public func getVideoFeed(completion: @escaping (Result<[String: Any], Error>) -> Void) {
+        APIService.getVideoFeed(authToken: getAuthToken(), completion: completion)
+    }
+
     public func updatePlateState(plate: String, completion: @escaping (Result<[String: Any], Error>) -> Void) {
         APIService.updatePlateState(authToken: getAuthToken(), plate: plate, completion: completion)
     }
