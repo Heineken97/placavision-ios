@@ -12,7 +12,8 @@ let package = Package(
             name: "Placavision",
             path: "Sources/Placavision",
             resources: [
-                .process("resources")
+                .process("resources"),
+                .process("Resources")
             ]
         ),
         .testTarget(
