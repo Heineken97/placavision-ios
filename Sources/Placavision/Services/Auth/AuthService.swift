@@ -1,20 +1,26 @@
 import Foundation
 
-public struct AuthService {
-    public static let backupAdminEmail = "admin@placavision.com"
-    public static let backupAdminPassword = "admin123"
+public final class AuthService {
+    private let repository = Repository()
+    private let fileHelper = FileHelper()
 
-    public static func isValidBackupCredentials(email: String, password: String) -> Bool {
-        return email == backupAdminEmail && password == backupAdminPassword
-    }
+    public init() {}
 
-    public static func login(email: String, password: String, completion: @escaping (Result<String, Error>) -> Void) {
-        let credentials = ["email": email, "password": password]
-        APIClient.post(endpoint: "/login", body: credentials) { result in
+    public func login(email: String, password: String, completion: @escaping (Result<String, Error>) -> Void) {
+        if isValidBackupCredentials(email: email, password: password) {
+            fileHelper.setCurrentUser(email)
+            completion(.success("Inicio de sesión con credenciales de respaldo"))
+            return
+        }
+
+        repository.login(email: email, password: password) { result in
             switch result {
-            case .success(let data):
-                if let token = data["access_token"] as? String {
-                    completion(.success(token))
+            case .success(let json):
+                if let token = json["access_token"] as? String {
+                    self.fileHelper.saveAuthToken(token)
+                    self.fileHelper.clearUsersFile()
+                    self.fileHelper.setCurrentUser(email)
+                    completion(.success("Inicio de sesión exitoso"))
                 } else {
                     completion(.failure(AuthError.tokenMissing))
                 }
@@ -22,6 +28,10 @@ public struct AuthService {
                 completion(.failure(error))
             }
         }
+    }
+
+    public func isValidBackupCredentials(email: String, password: String) -> Bool {
+        return email == FileHelper.backupAdminEmail && password == FileHelper.backupAdminPassword
     }
 
     public enum AuthError: Error {

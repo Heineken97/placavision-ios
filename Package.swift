@@ -12,10 +12,14 @@ let package = Package(
             name: "Placavision",
             path: "Sources/Placavision",
             sources: [
+                "Config",
+                "Data",
                 "Models",
                 "Services/Auth",
-                "Utils",
-                "data"
+                "Utils"
+            ],
+            resources: [
+                .process("Resources")
             ]
         ),
         .testTarget(

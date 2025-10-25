@@ -1,41 +1,64 @@
 import Foundation
 
-public struct APIClient {
-    public static func post(endpoint: String, body: [String: String], completion: @escaping (Result<[String: Any], Error>) -> Void) {
-        guard let url = URL(string: "https://api.placavision.com\(endpoint)") else {
-            completion(.failure(APIError.invalidURL))
-            return
-        }
-
-        var request = URLRequest(url: url)
-        request.httpMethod = "POST"
-        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-
-        do {
-            request.httpBody = try JSONSerialization.data(withJSONObject: body, options: [])
-        } catch {
-            completion(.failure(error))
-            return
-        }
-
-        URLSession.shared.dataTask(with: request) { data, _, error in
-            if let error = error {
-                completion(.failure(error))
-                return
-            }
-
-            guard let data = data,
-                  let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any] else {
-                completion(.failure(APIError.invalidResponse))
-                return
-            }
-
-            completion(.success(json))
-        }.resume()
+public struct APIService {
+    public static func login(email: String, password: String, completion: @escaping (Result<[String: Any], Error>) -> Void) {
+        let body = ["email": email, "password": password]
+        APIClient.post(endpoint: APIConfig.loginURL, body: body, completion: completion)
     }
 
-    public enum APIError: Error {
-        case invalidURL
-        case invalidResponse
+    public static func register(user: User, completion: @escaping (Result<Data, Error>) -> Void) {
+        APIClient.post(endpoint: APIConfig.registerURL, body: user, headers: ["x-api-key": ServerConfig.apiKey]) { result in
+            switch result {
+            case .success(let json):
+                if let data = try? JSONSerialization.data(withJSONObject: json) {
+                    completion(.success(data))
+                } else {
+                    completion(.failure(APIClient.APIError.invalidResponse))
+                }
+            case .failure(let error):
+                completion(.failure(error))
+            }
+        }
+    }
+
+    public static func getUser(authToken: String, completion: @escaping (Result<[String: Any], Error>) -> Void) {
+        APIClient.get(endpoint: APIConfig.userURL, headers: ["Authorization": authToken], completion: completion)
+    }
+
+    public static func updateUser(authToken: String, user: User, completion: @escaping (Result<Data, Error>) -> Void) {
+        APIClient.put(endpoint: APIConfig.userURL, body: user, headers: ["Authorization": authToken], completion: completion)
+    }
+
+    public static func deleteUser(authToken: String, completion: @escaping (Result<[String: Any], Error>) -> Void) {
+        APIClient.delete(endpoint: APIConfig.userURL, headers: ["Authorization": authToken], completion: completion)
+    }
+
+    public static func recoverPassword(authToken: String, email: String, completion: @escaping (Result<[String: Any], Error>) -> Void) {
+        let body = ["email": email]
+        APIClient.post(endpoint: "\(APIConfig.userURL)/recover", body: body, headers: ["Authorization": authToken], completion: completion)
+    }
+
+    public static func getPlates(authToken: String, completion: @escaping (Result<Data, Error>) -> Void) {
+        APIClient.getRaw(endpoint: APIConfig.platesURL, headers: ["Authorization": authToken], completion: completion)
+    }
+
+    public static func addPlate(authToken: String, report: Report, completion: @escaping (Result<[String: Any], Error>) -> Void) {
+        APIClient.post(endpoint: APIConfig.platesURL, body: report, headers: ["Authorization": authToken], completion: completion)
+    }
+
+    public static func updatePlate(authToken: String, plate: String, reportData: String, completion: @escaping (Result<[String: Any], Error>) -> Void) {
+        APIClient.put(endpoint: "\(APIConfig.platesURL)/\(plate)", body: ["data": reportData], headers: ["Authorization": authToken], completion: completion)
+    }
+
+    public static func updatePlateState(authToken: String, plate: String, completion: @escaping (Result<[String: Any], Error>) -> Void) {
+        APIClient.put(endpoint: "\(APIConfig.platesURL)/\(plate)/estado", body: [:], headers: ["Authorization": authToken], completion: completion)
+    }
+
+    public static func getVideoFeed(authToken: String, completion: @escaping (Result<[String: Any], Error>) -> Void) {
+        APIClient.get(endpoint: APIConfig.videoFeedURL, headers: ["Authorization": authToken], completion: completion)
+    }
+
+    public static func getGpsLocation(authToken: String, completion: @escaping (Result<GpsResponse, Error>) -> Void) {
+        APIClient.getDecodable(endpoint: APIConfig.gpsURL, headers: ["Authorization": authToken], completion: completion)
     }
 }
