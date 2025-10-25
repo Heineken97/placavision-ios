@@ -11,11 +11,11 @@ jobs:
     runs-on: macos-latest
 
     steps:
-    - name: Clean build artifacts
-      run: swift package clean
-
     - name: Checkout code
       uses: actions/checkout@v3
+
+    - name: Clean build artifacts
+      run: swift package clean
 
     - name: Build package
       run: swift build
