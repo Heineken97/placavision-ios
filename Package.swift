@@ -23,7 +23,7 @@ let package = Package(
                 "utils/FileHelper.swift",
             ],
             resources: [
-                .process("Resources")
+                .process("resources")
             ]
         ),
         .testTarget(
