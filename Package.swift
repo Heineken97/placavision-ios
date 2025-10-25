@@ -14,8 +14,8 @@ let package = Package(
            sources: [
                 "Config/APIConfig.swift",
                 "Config/ServerConfig.swift",
-                "Data/APIService.swift",
-                "Data/Repository.swift",
+                "data/APIService.swift",
+                "data/Repository.swift",
                 "Models/User.swift",
                 "Models/Report.swift",
                 "Models/GpsResponse.swift",
