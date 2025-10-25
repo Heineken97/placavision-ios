@@ -11,17 +11,6 @@ let package = Package(
         .target(
             name: "Placavision",
             path: "Sources/Placavision",
-           sources: [
-                "config/APIConfig.swift",
-                "config/ServerConfig.swift",
-                "data/APIService.swift",
-                "data/Repository.swift",
-                "models/User.swift",
-                "models/Report.swift",
-                "models/GpsResponse.swift",
-                "services/auth/AuthService.swift",
-                "utils/FileHelper.swift",
-            ],
             resources: [
                 .process("resources")
             ]
