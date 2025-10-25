@@ -8,7 +8,20 @@ let package = Package(
         .library(name: "Placavision", targets: ["Placavision"])
     ],
     targets: [
-        .target(name: "Placavision"),
-        .testTarget(name: "PlacavisionTests", dependencies: ["Placavision"])
+        .target(
+            name: "Placavision",
+            path: "Sources/Placavision",
+            sources: [
+                "Models",
+                "Services/Auth",
+                "Utils",
+                "data"
+            ]
+        ),
+        .testTarget(
+            name: "PlacavisionTests",
+            dependencies: ["Placavision"],
+            path: "Tests/PlacavisionTests"
+        )
     ]
 )
