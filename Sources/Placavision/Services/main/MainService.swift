@@ -3,39 +3,66 @@ import Foundation
 public final class MainService {
     private let repository = Repository()
     private let fileHelper = FileHelper()
+    private let authService = AuthService()
 
     public init() {}
 
-    /// Cierra sesión y limpia el usuario actual.
-    public func logout() {
-        fileHelper.clearCurrentUser()
-        print("🔒 Sesión cerrada")
-    }
-
-    /// Navega a una sección específica de la app.
-    public func navigate(to target: MainTarget) {
-        switch target {
-        case .login:
-            print("➡️ Navegar a Login")
-        case .reportPlate:
-            print("➡️ Navegar a ReporteDePlaca")
-        case .gps:
-            print("➡️ Navegar a GpsSuccess")
-        case .viewReports:
-            print("➡️ Navegar a CasosReportados")
-        case .editProfile:
-            print("➡️ Navegar a EditProfile")
-        case .videoFeed:
-            print("➡️ Navegar a VideoFeed")
+    /// Check current session state and return appropriate screen
+    public func checkInitialState() -> MainTarget {
+        if !authService.isAuthenticated {
+            return .login
         }
+        return .viewReports
     }
 
-    public enum MainTarget {
+    /// Handle user session management
+    public func logout(completion: @escaping (Result<String, Error>) -> Void) {
+        fileHelper.clearCurrentUser()
+        completion(.success("Sesión cerrada exitosamente"))
+    }
+
+    /// Get current user profile
+    public func getCurrentUser() -> User? {
+        fileHelper.getCurrentUser()
+    }
+
+    /// Check if user has admin privileges
+    public var isAdmin: Bool {
+        getCurrentUser()?.role == "admin"
+    }
+
+    /// Get current session state
+    public var sessionState: SessionState {
+        if !authService.isAuthenticated {
+            return .loggedOut
+        }
+        if let user = getCurrentUser() {
+            return .active(user: user)
+        }
+        return .error(message: "Usuario no encontrado")
+    }
+
+    public enum SessionState {
+        case active(user: User)
+        case loggedOut
+        case error(message: String)
+    }
+
+    public enum MainTarget: Equatable {
         case login
         case reportPlate
         case gps
         case viewReports
         case editProfile
         case videoFeed
+
+        public var requiresAuth: Bool {
+            switch self {
+            case .login:
+                return false
+            default:
+                return true
+            }
+        }
     }
 }
