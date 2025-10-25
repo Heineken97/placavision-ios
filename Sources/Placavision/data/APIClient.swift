@@ -15,13 +15,26 @@ public enum APIClient {
         init<T: Encodable>(_ wrapped: T) {
             self._encode = wrapped.encode
         }
+        // Existential overload for `any Encodable` values
+        init(_ wrapped: any Encodable) {
+            self._encode = { encoder in
+                try wrapped.encode(to: encoder)
+            }
+        }
         func encode(to encoder: Encoder) throws {
             try _encode(encoder)
         }
     }
 
     private static func makeRequest(endpoint: String, method: String, headers: [String: String]?, bodyData: Data?) throws -> URLRequest {
-        guard let url = URL(string: endpoint) else { throw APIError.invalidURL }
+        var url = URL(string: endpoint)
+        // If endpoint is a relative path (no scheme), try to prepend APIConfig.baseURL
+        if url == nil || url?.scheme == nil {
+            if let full = URL(string: APIConfig.baseURL + endpoint) {
+                url = full
+            }
+        }
+        guard let url = url else { throw APIError.invalidURL }
         var req = URLRequest(url: url)
         req.httpMethod = method
         if let headers = headers {
@@ -61,12 +74,33 @@ public enum APIClient {
         if JSONSerialization.isValidJSONObject(body) {
             return try? JSONSerialization.data(withJSONObject: body, options: [])
         }
-        // Try to encode Encodable values using AnyEncodable
-        if let enc = body as? Encodable {
+        // Try to encode Encodable values using AnyEncodable (support existential)
+        if let enc = body as? any Encodable {
             let any = AnyEncodable(enc)
             return try? JSONEncoder().encode(any)
         }
         return nil
+    }
+
+    // Raw variants returning Data for callers that expect raw Data
+    public static func postRaw(endpoint: String, body: Any?, headers: [String: String]? = nil, completion: @escaping (Result<Data, Error>) -> Void) {
+        do {
+            let data = encodeBody(body)
+            let req = try makeRequest(endpoint: endpoint, method: "POST", headers: headers, bodyData: data)
+            perform(request: req, completion: completion)
+        } catch {
+            completion(.failure(error))
+        }
+    }
+
+    public static func putRaw(endpoint: String, body: Any?, headers: [String: String]? = nil, completion: @escaping (Result<Data, Error>) -> Void) {
+        do {
+            let data = encodeBody(body)
+            let req = try makeRequest(endpoint: endpoint, method: "PUT", headers: headers, bodyData: data)
+            perform(request: req, completion: completion)
+        } catch {
+            completion(.failure(error))
+        }
     }
 
     // MARK: - Public convenience methods

@@ -7,18 +7,7 @@ public struct APIService {
     }
 
     public static func register(user: User, completion: @escaping (Result<Data, Error>) -> Void) {
-        APIClient.post(endpoint: APIConfig.registerURL, body: user, headers: ["x-api-key": ServerConfig.apiKey]) { result in
-            switch result {
-            case .success(let json):
-                if let data = try? JSONSerialization.data(withJSONObject: json) {
-                    completion(.success(data))
-                } else {
-                    completion(.failure(APIClient.APIError.invalidResponse))
-                }
-            case .failure(let error):
-                completion(.failure(error))
-            }
-        }
+        APIClient.postRaw(endpoint: APIConfig.registerURL, body: user, headers: ["x-api-key": ServerConfig.apiKey], completion: completion)
     }
 
     public static func getUser(authToken: String, completion: @escaping (Result<[String: Any], Error>) -> Void) {
@@ -26,7 +15,7 @@ public struct APIService {
     }
 
     public static func updateUser(authToken: String, user: User, completion: @escaping (Result<Data, Error>) -> Void) {
-        APIClient.put(endpoint: APIConfig.userURL, body: user, headers: ["Authorization": authToken], completion: completion)
+        APIClient.putRaw(endpoint: APIConfig.userURL, body: user, headers: ["Authorization": authToken], completion: completion)
     }
 
     public static func deleteUser(authToken: String, completion: @escaping (Result<[String: Any], Error>) -> Void) {

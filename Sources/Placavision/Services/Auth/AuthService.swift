@@ -30,7 +30,7 @@ public final class AuthService {
         }
     }
 
-    public func isValidBackupCredentials(email: String, password: String) -> Bool {
+    public static func isValidBackupCredentials(email: String, password: String) -> Bool {
         return email == FileHelper.backupAdminEmail && password == FileHelper.backupAdminPassword
     }
 
