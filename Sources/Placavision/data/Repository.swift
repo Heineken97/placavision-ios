@@ -11,8 +11,7 @@ public final class Repository {
     }
 
     public func login(email: String, password: String, completion: @escaping (Result<[String: Any], Error>) -> Void) {
-        let credentials = ["email": email, "password": password]
-        APIService.login(email: email, password: password, completion: completion)
+    APIService.login(email: email, password: password, completion: completion)
     }
 
     public func register(user: User, completion: @escaping (Result<Data, Error>) -> Void) {

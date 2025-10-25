@@ -7,7 +7,7 @@ public final class AuthService {
     public init() {}
 
     public func login(email: String, password: String, completion: @escaping (Result<String, Error>) -> Void) {
-        if isValidBackupCredentials(email: email, password: password) {
+    if Self.isValidBackupCredentials(email: email, password: password) {
             fileHelper.setCurrentUser(email)
             completion(.success("Inicio de sesión con credenciales de respaldo"))
             return
