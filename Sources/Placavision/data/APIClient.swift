@@ -37,9 +37,15 @@ public enum APIClient {
         guard let url = url else { throw APIError.invalidURL }
         var req = URLRequest(url: url)
         req.httpMethod = method
-        if let headers = headers {
-            for (k, v) in headers { req.setValue(v, forHTTPHeaderField: k) }
+        // Merge headers provided here with any default headers supplied by the app (e.g., X-API-Key / Authorization)
+        var merged = [String: String]()
+        if let provider = defaultHeadersProvider, let defaults = provider() {
+            for (k, v) in defaults { merged[k] = v }
         }
+        if let headers = headers {
+            for (k, v) in headers { merged[k] = v }
+        }
+        for (k, v) in merged { req.setValue(v, forHTTPHeaderField: k) }
         if let data = bodyData {
             req.httpBody = data
             if req.value(forHTTPHeaderField: "Content-Type") == nil {
@@ -49,8 +55,12 @@ public enum APIClient {
         return req
     }
 
+    /// Optional provider that supplies default headers for every request. The app (Repository) sets this to
+    /// include X-API-Key and Authorization headers, mirroring the Android OkHttp interceptor behavior.
+    public static var defaultHeadersProvider: (() -> [String: String]?)?
+
     private static func perform(request: URLRequest, completion: @escaping (Result<Data, Error>) -> Void) {
-        let task = URLSession.shared.dataTask(with: request) { data, response, error in
+        let task = session.dataTask(with: request) { data, response, error in
             if let error = error {
                 completion(.failure(APIError.requestFailed(error)))
                 return
@@ -67,6 +77,65 @@ public enum APIClient {
         }
         task.resume()
     }
+
+    // MARK: - Certificate pinning session
+
+    private class PinningDelegate: NSObject, URLSessionDelegate {
+        static let shared = PinningDelegate()
+        private let localCertData: Data?
+
+        override init() {
+            // Try to load PEM certificate from package resources (resources/cert.pem)
+            if let url = Bundle.module.url(forResource: "cert", withExtension: "pem") {
+                if let pem = try? String(contentsOf: url, encoding: .utf8) {
+                    // Strip PEM headers/footers and decode base64 to DER
+                    let base64 = pem
+                        .replacingOccurrences(of: "-----BEGIN CERTIFICATE-----", with: "")
+                        .replacingOccurrences(of: "-----END CERTIFICATE-----", with: "")
+                        .replacingOccurrences(of: "\n", with: "")
+                        .replacingOccurrences(of: "\r", with: "")
+                        .trimmingCharacters(in: .whitespacesAndNewlines)
+                    self.localCertData = Data(base64Encoded: base64)
+                } else {
+                    self.localCertData = nil
+                }
+            } else {
+                self.localCertData = nil
+            }
+            super.init()
+        }
+
+        func urlSession(_ session: URLSession, didReceive challenge: URLAuthenticationChallenge,
+                        completionHandler: @escaping (URLSession.AuthChallengeDisposition, URLCredential?) -> Void) {
+            guard let serverTrust = challenge.protectionSpace.serverTrust,
+                  let serverCert = SecTrustGetCertificateAtIndex(serverTrust, 0) else {
+                completionHandler(.performDefaultHandling, nil)
+                return
+            }
+
+            let serverCertData = SecCertificateCopyData(serverCert) as Data
+
+            // If we have a local cert to compare, use it for pinning
+            if let local = localCertData {
+                if local == serverCertData {
+                    completionHandler(.useCredential, URLCredential(trust: serverTrust))
+                    return
+                } else {
+                    // Not matching, fall back to default handling (which will typically fail)
+                    completionHandler(.cancelAuthenticationChallenge, nil)
+                    return
+                }
+            }
+
+            // No local cert available: allow default system evaluation
+            completionHandler(.performDefaultHandling, nil)
+        }
+    }
+
+    private static let session: URLSession = {
+        let cfg = URLSessionConfiguration.default
+        return URLSession(configuration: cfg, delegate: PinningDelegate.shared, delegateQueue: nil)
+    }()
 
     private static func encodeBody(_ body: Any?) -> Data? {
         guard let body = body else { return nil }
