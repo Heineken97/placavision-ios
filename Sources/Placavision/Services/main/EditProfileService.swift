@@ -6,10 +6,43 @@ public final class EditProfileService {
 
     public init() {}
 
-    /// Obtiene el usuario actual desde almacenamiento local.
-    public func getCurrentUser() -> User? {
+    /// Obtiene el usuario actual desde almacenamiento local y opcionalmente lo sincroniza con el servidor.
+    public func getCurrentUser(sync: Bool = false, completion: ((Result<User?, Error>) -> Void)? = nil) -> User? {
         let user = fileHelper.getCurrentUser()
-        return user.correo.isEmpty ? nil : user
+        if user.correo.isEmpty {
+            completion?(.success(nil))
+            return nil
+        }
+
+        if sync {
+            repository.getUser { [weak self] result in
+                guard let self = self else { return }
+                switch result {
+                case .success(let json):
+                    if let email = json["email"] as? String,
+                       let role = json["role"] as? String {
+                        let updated = User(
+                            correo: email,
+                            contrasena: user.contrasena ?? "",
+                            nombre_usuario: json["username"] as? String,
+                            identificador_nacional: json["national_id"] as? String,
+                            telefono: json["phone"] as? String,
+                            role: role
+                        )
+                        self.fileHelper.saveUser(updated)
+                        completion?(.success(updated))
+                    } else {
+                        completion?(.success(user))
+                    }
+                case .failure(let error):
+                    completion?(.failure(error))
+                }
+            }
+        } else if let completion = completion {
+            completion(.success(user))
+        }
+
+        return user
     }
 
     /// Valida los campos del formulario antes de actualizar el perfil.

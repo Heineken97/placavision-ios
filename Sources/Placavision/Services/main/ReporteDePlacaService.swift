@@ -128,12 +128,39 @@ public final class ReporteDePlacaService {
             fecha_reporte: ISO8601DateFormatter().string(from: Date())
         )
 
-        repository.addPlate(report: report) { result in
+        // Check for duplicate reports first by fetching existing plates
+        repository.getPlates { result in
             switch result {
-            case .success:
-                completion(.success("Placa \(plate) reportada correctamente"))
-            case .failure(let error):
-                completion(.failure(error))
+            case .success(let data):
+                do {
+                    let decoded = try JSONDecoder().decode(PlatesResponse.self, from: data)
+                    let exists = decoded.plates.contains { $0.placa_reportada.uppercased() == plate.uppercased() && $0.estado == "activo" }
+                    if exists {
+                        completion(.failure(ValidationError.duplicateReport))
+                        return
+                    }
+                } catch {
+                    // If decoding fails, proceed to attempt submission (server will validate)
+                }
+
+                repository.addPlate(report: report) { result in
+                    switch result {
+                    case .success:
+                        completion(.success("Placa \(plate) reportada correctamente"))
+                    case .failure(let error):
+                        completion(.failure(error))
+                    }
+                }
+            case .failure:
+                // If we can't fetch existing plates, try to submit anyway
+                repository.addPlate(report: report) { result in
+                    switch result {
+                    case .success:
+                        completion(.success("Placa \(plate) reportada correctamente"))
+                    case .failure(let error):
+                        completion(.failure(error))
+                    }
+                }
             }
         }
     }
