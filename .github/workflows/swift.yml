@@ -1,0 +1,56 @@
+name: Swift Build & Test
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build-and-test:
+    name: Build and Test
+    runs-on: macos-latest
+    
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Set Xcode Version
+      uses: maxim-lobanov/setup-xcode@v1
+      with:
+        xcode-version: latest-stable
+        
+    - name: Build
+      run: swift build -v
+      
+    - name: Run tests
+      run: swift test -v
+      
+    - name: Verify resources
+      run: |
+        # Check if cert.pem exists in the right location
+        if [ ! -f "Sources/Placavision/resources/cert.pem" ]; then
+          echo "Warning: cert.pem not found in resources folder"
+          mkdir -p Sources/Placavision/resources
+          # Create a placeholder cert for CI (you should replace this with your actual cert)
+          echo "-----BEGIN CERTIFICATE-----
+          MIIDhTCCAm2gAwIBAgIJAJ5KFhbqwkWUMA0GCSqGSIb3DQEBCwUAMFkxCzAJBgNV
+          BAYTAlVTMRMwEQYDVQQIDApTb21lLVN0YXRlMSEwHwYDVQQKDBhJbnRlcm5ldCBX
+          aWRnaXRzIFB0eSBMdGQxEjAQBgNVBAMMCWxvY2FsaG9zdDAeFw0yMzEwMjYwMDAw
+          MDBaFw0yNDEwMjUyMzU5NTlaMFkxCzAJBgNVBAYTAlVTMRMwEQYDVQQIDApTb21l
+          LVN0YXRlMSEwHwYDVQQKDBhJbnRlcm5ldCBXaWRnaXRzIFB0eSBMdGQxEjAQBgNV
+          BAMMCWxvY2FsaG9zdDCCASIwDQYJKoZIhvcNAQEBBQADggEPADCCAQoCggEBAL0L
+          O0dyd/1QjEVB3iC1UZKF5jZRJZVgPHWIx+6yGGsH+BlS6lH44lJ6PZKtY5XZrN0p
+          cfFvw8zGGmL8+3B0QS4PCE5JSYGltXnvR5oHv5x3oF5RDkZb8r5AmxEwV98NJWdS
+          5Q5v5KjX5wB5L5vX5W5wJ5qJ5Y5vwBp1zYkB9mKjU5X5Jw5Q7E0PuBv5r5h/kqNY
+          q4XFH0gmXZp+Zr5JyswW4j3EGxRx5/ACBHGQUMjP4c0p5P5TUXrGGO9IEwmdXHtq
+          TN4RhxFbGFBb5RvQfE1E5V4TgRuMiQK8U8E0vsh7pxBGJL9VbhIjI/PjBfH1iBQS
+          S4hzJ2lyVVWpQSMCAwEAAaNQME4wHQYDVR0OBBYEFGKiybA5I5Q7PJjVqkuGGGSG
+          jbZzMB8GA1UdIwQYMBaAFGKiybA5I5Q7PJjVqkuGGGSGjbZzMAwGA1UdEwQFMAMB
+          Af8wDQYJKoZIhvcNAQELBQADggEBAHX8LQzHHLi6Ap+D9zKvD0F0Z5Uc5yxzCVjj
+          I+FhWgu8NgD5VNP3c6wumxU2xW3H5CRLkfFf8XC4I5IlLwvMO5N5H9WnN9NX2zD5
+          E5EnQ9M8G7Rj8QBZjJvbKjuzVjF5Qv/YBMxlxA4Bk2qjbVLhgfR9LxQdKY0jzXhw
+          LyG2ikK8IBxOR6/xb8AgZsFT4TRXrUHVCCZc2D6AizwAHl+NDOJIhWKz/LwCWJEm
+          Zj0F4wEYzECvJdmdLGttqkU5YwjcjE8X4oCO3UQxqgN7jpVG3A3UEKvH4tqW4NvJ
+          q3xC4p8Bsj0wjkNMj7NgGQCPE7ZQfyGw7o0QPbLFRGBIL1YPkSk=
+          -----END CERTIFICATE-----" > Sources/Placavision/resources/cert.pem
+        fi

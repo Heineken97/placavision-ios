@@ -81,6 +81,7 @@ public enum APIClient {
     // MARK: - Certificate pinning session
 
     private class PinningDelegate: NSObject, URLSessionDelegate {
+        #if os(iOS) || os(macOS)
         static let shared = PinningDelegate()
         private let localCertData: Data?
 
@@ -102,11 +103,15 @@ public enum APIClient {
             } else {
                 self.localCertData = nil
             }
+            #else
+            self.localCertData = nil
+            #endif
             super.init()
         }
 
         func urlSession(_ session: URLSession, didReceive challenge: URLAuthenticationChallenge,
                         completionHandler: @escaping (URLSession.AuthChallengeDisposition, URLCredential?) -> Void) {
+            #if os(iOS) || os(macOS)
             guard let serverTrust = challenge.protectionSpace.serverTrust,
                   let serverCert = SecTrustGetCertificateAtIndex(serverTrust, 0) else {
                 completionHandler(.performDefaultHandling, nil)
@@ -127,9 +132,21 @@ public enum APIClient {
                 }
             }
 
+            // For known hosts (172.20.10.3, localhost), accept any cert
+            let host = challenge.protectionSpace.host
+            if host == "172.20.10.3" || host == "localhost" || host == "127.0.0.1" {
+                completionHandler(.useCredential, URLCredential(trust: serverTrust))
+                return
+            }
+
             // No local cert available: allow default system evaluation
             completionHandler(.performDefaultHandling, nil)
+            #else
+            // For other platforms, use default handling
+            completionHandler(.performDefaultHandling, nil)
+            #endif
         }
+        #endif
     }
 
     private static let session: URLSession = {
