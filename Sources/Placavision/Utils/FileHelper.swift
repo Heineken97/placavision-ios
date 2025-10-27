@@ -44,7 +44,7 @@ public final class FileHelper {
             users.append(user)
         }
         saveUserList(users)
-        if getCurrentUser().correo == user.correo {
+        if getCurrentUser()?.correo == user.correo {
             setCurrentUser(user.correo)
         }
     }

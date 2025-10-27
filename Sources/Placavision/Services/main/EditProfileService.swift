@@ -8,8 +8,8 @@ public final class EditProfileService {
 
     /// Obtiene el usuario actual desde almacenamiento local y opcionalmente lo sincroniza con el servidor.
     public func getCurrentUser(sync: Bool = false, completion: ((Result<User?, Error>) -> Void)? = nil) -> User? {
-        let user = fileHelper.getCurrentUser()
-        if user.correo.isEmpty {
+        guard let user = fileHelper.getCurrentUser(),
+              !user.correo.isEmpty else {
             completion?(.success(nil))
             return nil
         }
@@ -23,7 +23,7 @@ public final class EditProfileService {
                        let role = json["role"] as? String {
                         let updated = User(
                             correo: email,
-                            contrasena: user.contrasena ?? "",
+                            contrasena: user.contrasena,
                             nombre_usuario: json["username"] as? String,
                             identificador_nacional: json["national_id"] as? String,
                             telefono: json["phone"] as? String,
@@ -92,7 +92,7 @@ public final class EditProfileService {
 
         let updatedUser = User(
             correo: email,
-            contrasena: newPassword?.isEmpty == false ? newPassword! : currentUser.contrasena ?? "",
+            contrasena: newPassword?.isEmpty == false ? newPassword! : currentUser.contrasena,
             nombre_usuario: username,
             identificador_nacional: nationalId,
             telefono: phone,

@@ -129,7 +129,7 @@ public final class ReporteDePlacaService {
         )
 
         // Check for duplicate reports first by fetching existing plates
-        repository.getPlates { result in
+        repository.getPlates { [weak self] result in
             switch result {
             case .success(let data):
                 do {
@@ -143,7 +143,7 @@ public final class ReporteDePlacaService {
                     // If decoding fails, proceed to attempt submission (server will validate)
                 }
 
-                repository.addPlate(report: report) { result in
+                self?.repository.addPlate(report: report) { result in
                     switch result {
                     case .success:
                         completion(.success("Placa \(plate) reportada correctamente"))
@@ -153,7 +153,7 @@ public final class ReporteDePlacaService {
                 }
             case .failure:
                 // If we can't fetch existing plates, try to submit anyway
-                repository.addPlate(report: report) { result in
+                self?.repository.addPlate(report: report) { result in
                     switch result {
                     case .success:
                         completion(.success("Placa \(plate) reportada correctamente"))

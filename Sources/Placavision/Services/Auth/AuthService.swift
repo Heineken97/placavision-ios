@@ -137,7 +137,7 @@ public final class AuthService {
 
     /// Get current authentication state with more details
     public var sessionState: SessionState {
-        guard let token = currentToken else {
+        guard currentToken != nil else {
             return .loggedOut
         }
         
@@ -199,7 +199,7 @@ public final class AuthService {
             return
         }
         
-        repository.login(email: user.correo, password: user.contrasena ?? "") { [weak self] result in
+        repository.login(email: user.correo, password: user.contrasena) { [weak self] result in
             guard let self = self else { return }
             defer { self.isRefreshing = false }
             
