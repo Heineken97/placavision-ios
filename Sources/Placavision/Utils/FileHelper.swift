@@ -1,6 +1,6 @@
 import Foundation
 
-public final class FileHelper {
+public final class FileHelper: FileHelperProtocol {
     private let fileManager = FileManager.default
     private let usersFile: URL
     private let prefs = UserDefaults.standard

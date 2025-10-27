@@ -1,6 +1,6 @@
 import Foundation
 
-public final class Repository {
+public final class Repository: RepositoryProtocol {
     private let fileHelper = FileHelper()
 
     public init() {}

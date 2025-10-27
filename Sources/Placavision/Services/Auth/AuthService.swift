@@ -1,8 +1,8 @@
 import Foundation
 
 public final class AuthService {
-    private let repository: Repository
-    private let fileHelper: FileHelper
+    private let repository: RepositoryProtocol
+    private let fileHelper: FileHelperProtocol
     private var refreshTimer: DispatchSourceTimer?
     private let refreshQueue = DispatchQueue(label: "com.placavision.auth", qos: .utility)
     private let tokenRefreshInterval: TimeInterval = 15 * 60 // 15 minutes
