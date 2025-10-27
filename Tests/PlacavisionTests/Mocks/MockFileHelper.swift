@@ -6,6 +6,7 @@ final class MockFileHelper: FileHelper {
     private var users: [User] = []
     private var currentUserEmail: String?
     private var authToken: String?
+    var isTokenExpired: Bool = false
     
     override public func getCurrentUser() -> User? {
         guard let email = currentUserEmail else { return nil }
@@ -56,7 +57,7 @@ final class MockFileHelper: FileHelper {
     }
     
     override public func isTokenExpired() -> Bool {
-        return false // For testing, assume token is always valid
+        return isTokenExpired
     }
     
     override public func clearUsersFile() {

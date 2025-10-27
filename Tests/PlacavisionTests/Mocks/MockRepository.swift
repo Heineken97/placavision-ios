@@ -11,6 +11,7 @@ final class MockRepository: Repository {
     var videoFeedResponse: Result<[String: Any], Error> = .failure(NSError(domain: "", code: -1))
     var gpsResponse: Result<GpsResponse, Error> = .failure(NSError(domain: "", code: -1))
     var recoveryResponse: Result<Data, Error> = .failure(NSError(domain: "", code: -1))
+    var submitReportResponse: Result<Data, Error> = .failure(NSError(domain: "", code: -1))
 
     override public func login(email: String, password: String, completion: @escaping (Result<[String: Any], Error>) -> Void) {
         completion(loginResponse)
@@ -42,5 +43,18 @@ final class MockRepository: Repository {
     
     override public func requestPasswordRecovery(email: String, completion: @escaping (Result<Data, Error>) -> Void) {
         completion(recoveryResponse)
+    }
+    
+    override public func submitReport(
+        plate: String,
+        model: String,
+        brand: String,
+        year: String,
+        type: String,
+        description: String,
+        phone: String,
+        completion: @escaping (Result<Data, Error>) -> Void
+    ) {
+        completion(submitReportResponse)
     }
 }
