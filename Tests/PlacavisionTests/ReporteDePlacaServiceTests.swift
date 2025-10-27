@@ -3,14 +3,20 @@ import XCTest
 
 final class ReporteDePlacaServiceTests: XCTestCase {
     var reportService: ReporteDePlacaService!
-    
+    var mockRepo: MockRepository!
+    var mockFileHelper: MockFileHelper!
+
     override func setUp() {
         super.setUp()
-        reportService = ReporteDePlacaService()
+        mockRepo = MockRepository()
+        mockFileHelper = MockFileHelper()
+        reportService = ReporteDePlacaService(repository: mockRepo, fileHelper: mockFileHelper)
     }
-    
+
     override func tearDown() {
         reportService = nil
+        mockRepo = nil
+        mockFileHelper = nil
         super.tearDown()
     }
     

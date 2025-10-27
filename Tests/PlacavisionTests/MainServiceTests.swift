@@ -125,8 +125,8 @@ final class MainServiceTests: XCTestCase {
         mockFileHelper.isTokenExpired = true
         XCTAssertFalse(mainService.isTokenValid())
         
-        // Test with no token
-        mockFileHelper.saveAuthToken(nil)
+    // Test with no token
+    mockFileHelper.saveAuthToken("")
         XCTAssertFalse(mainService.isTokenValid())
     }
     

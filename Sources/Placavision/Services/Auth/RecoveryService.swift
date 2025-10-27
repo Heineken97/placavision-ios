@@ -1,10 +1,17 @@
 import Foundation
 
 public final class RecoveryService {
-    private let repository = Repository()
+    private let repository: RepositoryProtocol
     private let recoveryPattern = #"^[A-Z0-9a-z._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$"#
 
-    public init() {}
+    public init() {
+        self.repository = Repository()
+    }
+
+    // DI initializer for tests
+    public init(repository: RepositoryProtocol) {
+        self.repository = repository
+    }
 
     /// Validates email format before starting recovery process
     public func validateEmail(_ email: String) -> Result<Void, ValidationError> {

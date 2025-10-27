@@ -1,10 +1,19 @@
 import Foundation
 
 public final class ReporteDePlacaService {
-    private let repository = Repository()
-    private let fileHelper = FileHelper()
-    
-    public init() {}
+    private let repository: RepositoryProtocol
+    private let fileHelper: FileHelperProtocol
+
+    public init() {
+        self.repository = Repository()
+        self.fileHelper = FileHelper()
+    }
+
+    // DI initializer for tests
+    public init(repository: RepositoryProtocol, fileHelper: FileHelperProtocol) {
+        self.repository = repository
+        self.fileHelper = fileHelper
+    }
 
     /// Validates and processes a new plate report
     /// - Parameters:

@@ -1,11 +1,24 @@
 import Foundation
 
 public final class MainService {
-    private let repository = Repository()
-    private let fileHelper = FileHelper()
-    private let authService = AuthService()
+    private let repository: RepositoryProtocol
+    private let fileHelper: FileHelperProtocol
+    private let authService: AuthService
 
-    public init() {}
+    public init() {
+        let repo = Repository()
+        let fh = FileHelper()
+        self.repository = repo
+        self.fileHelper = fh
+        self.authService = AuthService(repository: repo, fileHelper: fh)
+    }
+
+    // Dependency-injection initializer used by tests
+    public init(repository: RepositoryProtocol, fileHelper: FileHelperProtocol) {
+        self.repository = repository
+        self.fileHelper = fileHelper
+        self.authService = AuthService(repository: repository, fileHelper: fileHelper)
+    }
 
     /// Check current session state and return appropriate screen
     public func checkInitialState() -> MainTarget {

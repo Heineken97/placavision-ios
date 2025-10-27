@@ -2,65 +2,67 @@ import Foundation
 @testable import Placavision
 
 /// Mock FileHelper for testing that uses in-memory storage
-final class MockFileHelper: FileHelper {
+final class MockFileHelper: FileHelperProtocol {
     private var users: [User] = []
     private var currentUserEmail: String?
     private var authToken: String?
     var isTokenExpired: Bool = false
-    
-    override public func getCurrentUser() -> User? {
+
+    public init() {}
+
+    public func getCurrentUser() -> User? {
         guard let email = currentUserEmail else { return nil }
         return findUserByEmail(email)
     }
-    
-    override public func setCurrentUser(_ email: String) {
+
+    public func setCurrentUser(_ email: String) {
         if findUserByEmail(email) != nil {
             currentUserEmail = email
         }
     }
-    
-    override public func clearCurrentUser() {
+
+    public func clearCurrentUser() {
         currentUserEmail = nil
         users.removeAll()
     }
-    
-    override public func saveUser(_ user: User) {
+
+    public func saveUser(_ user: User) {
         if let index = users.firstIndex(where: { $0.correo == user.correo }) {
             users[index] = user
         } else {
             users.append(user)
         }
     }
-    
-    override public func getUsers() -> [User] {
+
+    public func getUsers() -> [User] {
         return users
     }
-    
-    override public func findUserByEmail(_ email: String) -> User? {
+
+    public func findUserByEmail(_ email: String) -> User? {
         return users.first { $0.correo == email }
     }
-    
-    override public func findUserByUsername(_ username: String) -> User? {
+
+    public func findUserByUsername(_ username: String) -> User? {
         return users.first { $0.nombre_usuario == username }
     }
-    
-    override public func saveUserList(_ users: [User]) {
+
+    public func saveUserList(_ users: [User]) {
         self.users = users
     }
-    
-    override public func saveAuthToken(_ token: String) {
+
+    public func saveAuthToken(_ token: String) {
         self.authToken = token
     }
-    
-    override public func getAuthToken() -> String? {
+
+    public func getAuthToken() -> String? {
         return authToken
     }
-    
-    override public func isTokenExpired() -> Bool {
+
+    public func isTokenExpired() -> Bool {
         return isTokenExpired
     }
-    
-    override public func clearUsersFile() {
+
+    public func clearUsersFile() {
         users.removeAll()
     }
 }

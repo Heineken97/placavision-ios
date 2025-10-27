@@ -13,7 +13,7 @@ public final class AuthService {
         self.init(repository: Repository(), fileHelper: FileHelper())
     }
     
-    public init(repository: Repository, fileHelper: FileHelper) {
+    public init(repository: RepositoryProtocol, fileHelper: FileHelperProtocol) {
         self.repository = repository
         self.fileHelper = fileHelper
         setupTokenRefresh()

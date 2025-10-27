@@ -3,7 +3,7 @@ import Foundation
 /// GPS polling service implemented without using Swift concurrency APIs
 /// to keep compatibility with older deployment targets.
 public final class GpsService {
-    private let repository = Repository()
+    private let repository: RepositoryProtocol
     private var timer: DispatchSourceTimer?
     private var locationObtained = false
     private let queue = DispatchQueue(label: "com.placavision.gps", qos: .background)
@@ -12,7 +12,14 @@ public final class GpsService {
     private var lastValidLocation: LocationData?
     private var precisionThreshold = 10.0  // meters
     
-    public init() {}
+    public init() {
+        self.repository = Repository()
+    }
+
+    // DI initializer for tests
+    public init(repository: RepositoryProtocol) {
+        self.repository = repository
+    }
 
     /// Inicia el ciclo de sondeo GPS hasta obtener una ubicación válida.
     public func startPolling(update: @escaping (GpsStatus) -> Void) {

@@ -2,7 +2,7 @@ import Foundation
 @testable import Placavision
 
 /// Mock Repository for testing that returns predefined responses
-final class MockRepository: Repository {
+final class MockRepository: RepositoryProtocol {
     var loginResponse: Result<[String: Any], Error> = .failure(NSError(domain: "", code: -1))
     var registerResponse: Result<Data, Error> = .failure(NSError(domain: "", code: -1))
     var updateUserResponse: Result<Data, Error> = .failure(NSError(domain: "", code: -1))
@@ -10,51 +10,67 @@ final class MockRepository: Repository {
     var platesResponse: Result<Data, Error> = .failure(NSError(domain: "", code: -1))
     var videoFeedResponse: Result<[String: Any], Error> = .failure(NSError(domain: "", code: -1))
     var gpsResponse: Result<GpsResponse, Error> = .failure(NSError(domain: "", code: -1))
-    var recoveryResponse: Result<Data, Error> = .failure(NSError(domain: "", code: -1))
+    var recoveryResponse: Result<[String: Any], Error> = .failure(NSError(domain: "", code: -1))
     var submitReportResponse: Result<Data, Error> = .failure(NSError(domain: "", code: -1))
 
-    override public func login(email: String, password: String, completion: @escaping (Result<[String: Any], Error>) -> Void) {
+    public init() {}
+
+    public func login(email: String, password: String, completion: @escaping (Result<[String: Any], Error>) -> Void) {
         completion(loginResponse)
     }
 
-    override public func register(user: User, completion: @escaping (Result<Data, Error>) -> Void) {
+    public func register(user: User, completion: @escaping (Result<Data, Error>) -> Void) {
         completion(registerResponse)
     }
 
-    override public func updateUser(authToken: String, user: User, completion: @escaping (Result<Data, Error>) -> Void) {
+    public func recoverPassword(email: String, completion: @escaping (Result<[String: Any], Error>) -> Void) {
+        completion(recoveryResponse)
+    }
+
+    public func updateUser(user: User, completion: @escaping (Result<Data, Error>) -> Void) {
         completion(updateUserResponse)
     }
 
-    override public func getUser(completion: @escaping (Result<[String: Any], Error>) -> Void) {
+    public func deleteUser(completion: @escaping (Result<[String: Any], Error>) -> Void) {
         completion(userResponse)
     }
 
-    override public func getPlates(completion: @escaping (Result<Data, Error>) -> Void) {
+    public func addPlate(report: Report, completion: @escaping (Result<[String: Any], Error>) -> Void) {
+        // Map to submitReportResponse for older tests expecting a Data response
+        switch submitReportResponse {
+        case .success(let data):
+            // Try to decode JSON to [String: Any] if possible, otherwise return empty dict
+            if let json = try? JSONSerialization.jsonObject(with: data, options: []) as? [String: Any] {
+                completion(.success(json))
+            } else {
+                completion(.success([:]))
+            }
+        case .failure(let err):
+            completion(.failure(err))
+        }
+    }
+
+    public func getPlates(completion: @escaping (Result<Data, Error>) -> Void) {
         completion(platesResponse)
     }
 
-    override public func getVideoFeed(completion: @escaping (Result<[String: Any], Error>) -> Void) {
+    public func updatePlate(plate: String, reportData: String, completion: @escaping (Result<[String: Any], Error>) -> Void) {
+        completion(userResponse)
+    }
+
+    public func updatePlateState(plate: String, completion: @escaping (Result<[String: Any], Error>) -> Void) {
+        completion(userResponse)
+    }
+
+    public func getVideoFeed(completion: @escaping (Result<[String: Any], Error>) -> Void) {
         completion(videoFeedResponse)
     }
 
-    override public func getGpsLocation(completion: @escaping (Result<GpsResponse, Error>) -> Void) {
+    public func getUser(completion: @escaping (Result<[String: Any], Error>) -> Void) {
+        completion(userResponse)
+    }
+
+    public func getGpsLocation(completion: @escaping (Result<GpsResponse, Error>) -> Void) {
         completion(gpsResponse)
-    }
-    
-    override public func requestPasswordRecovery(email: String, completion: @escaping (Result<Data, Error>) -> Void) {
-        completion(recoveryResponse)
-    }
-    
-    override public func submitReport(
-        plate: String,
-        model: String,
-        brand: String,
-        year: String,
-        type: String,
-        description: String,
-        phone: String,
-        completion: @escaping (Result<Data, Error>) -> Void
-    ) {
-        completion(submitReportResponse)
     }
 }

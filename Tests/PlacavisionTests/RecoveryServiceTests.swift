@@ -49,10 +49,10 @@ final class RecoveryServiceTests: XCTestCase {
     
     func testRequestRecovery_withValidEmail() {
         let exp = expectation(description: "recovery request completes")
-        let successResponse = "Recovery email sent".data(using: .utf8)!
-        mockRepo.recoveryResponse = .success(successResponse)
-        
-        recoveryService.requestRecovery(email: "user@example.com") { result in
+    let successResponse: [String: Any] = ["temp_password": "temporary123"]
+    mockRepo.recoveryResponse = .success(successResponse)
+
+    recoveryService.recoverPassword(email: "user@example.com") { result in
             switch result {
             case .success:
                 exp.fulfill()
@@ -67,7 +67,7 @@ final class RecoveryServiceTests: XCTestCase {
     func testRequestRecovery_withInvalidEmail() {
         let exp = expectation(description: "recovery request fails validation")
         
-        recoveryService.requestRecovery(email: "invalid-email") { result in
+    recoveryService.recoverPassword(email: "invalid-email") { result in
             switch result {
             case .success:
                 XCTFail("Expected validation failure")
@@ -87,9 +87,9 @@ final class RecoveryServiceTests: XCTestCase {
     func testRequestRecovery_whenServerFails() {
         let exp = expectation(description: "recovery request fails")
         let mockError = NSError(domain: "Recovery", code: 500, userInfo: [NSLocalizedDescriptionKey: "Server error"])
-        mockRepo.recoveryResponse = .failure(mockError)
-        
-        recoveryService.requestRecovery(email: "user@example.com") { result in
+    mockRepo.recoveryResponse = .failure(mockError)
+
+    recoveryService.recoverPassword(email: "user@example.com") { result in
             switch result {
             case .success:
                 XCTFail("Expected failure")

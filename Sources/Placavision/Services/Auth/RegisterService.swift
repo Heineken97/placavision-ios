@@ -1,11 +1,22 @@
 import Foundation
 
 public final class RegisterService {
-    private let repository = Repository()
-    private let fileHelper = FileHelper()
+    private let repository: RepositoryProtocol
+    private let fileHelper: FileHelperProtocol
     private let emailPattern = #"^[A-Z0-9a-z._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$"#
 
-    public init() {}
+    public init() {
+        let repo = Repository()
+        let fh = FileHelper()
+        self.repository = repo
+        self.fileHelper = fh
+    }
+
+    // DI initializer for tests
+    public init(repository: RepositoryProtocol, fileHelper: FileHelperProtocol) {
+        self.repository = repository
+        self.fileHelper = fileHelper
+    }
 
     /// Register a new user with validation
     /// - Parameters:

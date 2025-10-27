@@ -1,7 +1,8 @@
 import Foundation
 
 public final class CasosReportadosService {
-    private let repository = Repository()
+    private let repository: RepositoryProtocol
+    private let fileHelper: FileHelperProtocol
     private var currentPage = 1
     private let pageSize = 20
     private var hasMorePages = true
@@ -9,7 +10,16 @@ public final class CasosReportadosService {
     private var cachedReports: [Report] = []
     private let queue = DispatchQueue(label: "com.placavision.reports", qos: .userInitiated)
 
-    public init() {}
+    public init() {
+        self.repository = Repository()
+        self.fileHelper = FileHelper()
+    }
+
+    // DI initializer for tests
+    public init(repository: RepositoryProtocol, fileHelper: FileHelperProtocol) {
+        self.repository = repository
+        self.fileHelper = fileHelper
+    }
 
     /// Carga los reportes de placas desde el backend con paginación.
     public func loadPlates(refresh: Bool = false, completion: @escaping (Result<PlatesPage, Error>) -> Void) {
@@ -129,6 +139,11 @@ public final class CasosReportadosService {
     /// Formatea una línea de texto con etiqueta y valor.
     public func formatBold(label: String, value: String) -> String {
         return "\(label): \(value)"
+    }
+
+    /// Test helper: replace cached reports (used by unit tests)
+    public func updateCachedReports(_ reports: [Report]) {
+        self.cachedReports = reports
     }
     
     public struct PlatesPage {

@@ -1,10 +1,19 @@
 import Foundation
 
 public final class EditProfileService {
-    private let repository = Repository()
-    private let fileHelper = FileHelper()
+    private let repository: RepositoryProtocol
+    private let fileHelper: FileHelperProtocol
 
-    public init() {}
+    public init() {
+        self.repository = Repository()
+        self.fileHelper = FileHelper()
+    }
+
+    // DI initializer for tests
+    public init(repository: RepositoryProtocol, fileHelper: FileHelperProtocol) {
+        self.repository = repository
+        self.fileHelper = fileHelper
+    }
 
     /// Obtiene el usuario actual desde almacenamiento local y opcionalmente lo sincroniza con el servidor.
     public func getCurrentUser(sync: Bool = false, completion: ((Result<User?, Error>) -> Void)? = nil) -> User? {
