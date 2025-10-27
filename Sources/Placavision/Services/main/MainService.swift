@@ -25,7 +25,7 @@ public final class MainService {
         if !authService.isAuthenticated {
             return .login
         }
-        return .viewReports
+        return .home
     }
 
     /// Handle user session management
@@ -95,6 +95,7 @@ public final class MainService {
     }
 
     public enum MainTarget: Equatable {
+        case home
         case login
         case reportPlate
         case gps
@@ -108,6 +109,36 @@ public final class MainService {
                 return false
             default:
                 return true
+            }
+        }
+    }
+
+    /// Returns whether the current token is valid
+    public func isTokenValid() -> Bool {
+        return authService.isAuthenticated
+    }
+
+    /// Reloads user data from the backend and updates the local store
+    public func reloadUserData(completion: @escaping (Result<Void, Error>) -> Void) {
+        repository.getUser { [weak self] result in
+            guard let self = self else { return }
+            switch result {
+            case .success(let json):
+                if let email = json["email"] as? String {
+                    let updated = User(
+                        correo: email,
+                        contrasena: self.fileHelper.getCurrentUser()?.contrasena ?? "",
+                        nombre_usuario: json["username"] as? String,
+                        identificador_nacional: json["national_id"] as? String,
+                        telefono: json["phone"] as? String,
+                        role: json["role"] as? String
+                    )
+                    self.fileHelper.saveUser(updated)
+                    self.fileHelper.setCurrentUser(email)
+                }
+                completion(.success(()))
+            case .failure(let error):
+                completion(.failure(error))
             }
         }
     }

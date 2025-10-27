@@ -129,7 +129,7 @@ final class EditProfileServiceTests: XCTestCase {
         
         editProfileService.updateProfile(
             email: updatedUser.correo,
-            username: updatedUser.nombre_usuario,
+            username: updatedUser.nombre_usuario ?? "",
             phone: updatedUser.telefono ?? "",
             nationalId: updatedUser.cedula ?? "",
             newPassword: nil

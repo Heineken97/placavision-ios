@@ -129,7 +129,7 @@ public final class AuthService {
 
     /// Checks if there's a valid auth token
     public var isAuthenticated: Bool {
-        guard !fileHelper.isTokenExpired() else {
+        guard !fileHelper.isTokenExpired else {
             refreshTokenIfNeeded()
             return false
         }
@@ -147,7 +147,7 @@ public final class AuthService {
             return .loggedOut
         }
         
-        if fileHelper.isTokenExpired() {
+        if fileHelper.isTokenExpired {
             return .expired
         }
         

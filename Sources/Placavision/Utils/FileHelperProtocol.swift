@@ -11,6 +11,6 @@ public protocol FileHelperProtocol {
     func saveUserList(_ users: [User])
     func saveAuthToken(_ token: String)
     func getAuthToken() -> String?
-    func isTokenExpired() -> Bool
+    var isTokenExpired: Bool { get set }
     func clearUsersFile()
 }

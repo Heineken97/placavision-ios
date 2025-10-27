@@ -80,13 +80,19 @@ public final class FileHelper: FileHelperProtocol {
         return prefs.string(forKey: "auth_token")
     }
 
-    public func isTokenExpired() -> Bool {
-        guard let token = getAuthToken(),
-              let payload = decodeJWT(token),
-              let exp = payload["exp"] as? Double else {
-            return true
+    public var isTokenExpired: Bool {
+        get {
+            guard let token = getAuthToken(),
+                  let payload = decodeJWT(token),
+                  let exp = payload["exp"] as? Double else {
+                return true
+            }
+            return exp * 1000 < Date().timeIntervalSince1970 * 1000
         }
-        return exp * 1000 < Date().timeIntervalSince1970 * 1000
+        set {
+            // Production FileHelper ignores explicit sets; token expiry is derived from token contents.
+            // Setter exists to satisfy the protocol and allow tests to set this flag on mocks.
+        }
     }
 
     public func clearUsersFile() {
