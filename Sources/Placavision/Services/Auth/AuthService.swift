@@ -223,6 +223,18 @@ public final class AuthService {
         case expired
         case refreshing
         
+        public static func == (lhs: SessionState, rhs: SessionState) -> Bool {
+            switch (lhs, rhs) {
+            case (.loggedOut, .loggedOut),
+                 (.expired, .expired),
+                 (.refreshing, .refreshing):
+                return true
+            case (.authenticated(let l), .authenticated(let r)):
+                return l.correo == r.correo
+            default:
+                return false
+            }
+        
         public var description: String {
             switch self {
             case .loggedOut:

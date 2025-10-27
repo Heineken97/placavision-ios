@@ -1,4 +1,4 @@
-public struct User: Codable {
+public struct User: Codable, Equatable {
     public let correo: String
     public let contrasena: String
     public let nombre_usuario: String?

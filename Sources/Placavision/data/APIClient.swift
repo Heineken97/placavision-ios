@@ -81,11 +81,11 @@ public enum APIClient {
     // MARK: - Certificate pinning session
 
     private class PinningDelegate: NSObject, URLSessionDelegate {
-        #if os(iOS) || os(macOS)
         static let shared = PinningDelegate()
         private let localCertData: Data?
 
         override init() {
+            #if os(iOS) || os(macOS)
             // Try to load PEM certificate from package resources (resources/cert.pem)
             if let url = Bundle.module.url(forResource: "cert", withExtension: "pem") {
                 if let pem = try? String(contentsOf: url, encoding: .utf8) {

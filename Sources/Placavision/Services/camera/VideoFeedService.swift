@@ -131,7 +131,7 @@ public final class VideoFeedService {
         public let quality: StreamQuality
     }
 
-    public enum VideoError: LocalizedError {
+    public enum VideoError: LocalizedError, Equatable {
         case invalidURL
         case unauthorized
         case serverError(Int)
@@ -139,6 +139,23 @@ public final class VideoFeedService {
         case invalidResponse
         case maxRetriesExceeded
         case sslError
+        
+        public static func == (lhs: VideoError, rhs: VideoError) -> Bool {
+            switch (lhs, rhs) {
+            case (.invalidURL, .invalidURL),
+                 (.unauthorized, .unauthorized),
+                 (.invalidResponse, .invalidResponse),
+                 (.maxRetriesExceeded, .maxRetriesExceeded),
+                 (.sslError, .sslError):
+                return true
+            case (.serverError(let l), .serverError(let r)):
+                return l == r
+            case (.networkError(let l), .networkError(let r)):
+                return l.localizedDescription == r.localizedDescription
+            default:
+                return false
+            }
+        }
         
         public var errorDescription: String? {
             switch self {
