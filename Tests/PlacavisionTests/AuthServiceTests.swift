@@ -3,13 +3,19 @@ import XCTest
 
 final class AuthServiceTests: XCTestCase {
     var authService: AuthService!
+    var mockRepo: MockRepository!
+    var mockFileHelper: MockFileHelper!
 
     override func setUp() {
         super.setUp()
-        authService = AuthService()
+        mockRepo = MockRepository()
+        mockFileHelper = MockFileHelper()
+        authService = AuthService(repository: mockRepo, fileHelper: mockFileHelper)
     }
 
     override func tearDown() {
+        mockRepo = nil
+        mockFileHelper = nil
         authService = nil
         super.tearDown()
     }
