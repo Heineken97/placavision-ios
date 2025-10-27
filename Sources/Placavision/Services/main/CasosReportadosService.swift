@@ -115,7 +115,7 @@ public final class CasosReportadosService {
         
         return cachedReports.filter { report in
             report.placa_reportada.lowercased().contains(searchQuery) ||
-            report.tipo_incidencia.lowercased().contains(searchQuery) ||
+            (report.tipo_incidencia ?? "").lowercased().contains(searchQuery) ||
             report.fecha_reporte.lowercased().contains(searchQuery)
         }
     }

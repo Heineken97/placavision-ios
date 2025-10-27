@@ -1,3 +1,5 @@
+import Foundation
+
 public struct GpsResponse: Codable {
     public let status: String
     public let timestamp: String

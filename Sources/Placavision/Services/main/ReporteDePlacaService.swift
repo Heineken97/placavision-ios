@@ -126,15 +126,16 @@ public final class ReporteDePlacaService {
         completion: @escaping (Result<String, Error>) -> Void
     ) {
         let report = Report(
-            placa_reportada: plate.uppercased(),
-            tipo_incidencia: type,
+            placa: plate.uppercased(),
+            estado: "activo",
+            fecha: ISO8601DateFormatter().string(from: Date()),
+            ubicacion: nil,
+            descripcion: description,
             marca: brand,
             modelo: model,
-            anio: Int(year) ?? 0,
+            anio: Int(year),
             telefono_contacto: phone,
-            descripcion: description,
-            estado: "activo",
-            fecha_reporte: ISO8601DateFormatter().string(from: Date())
+            tipo_incidencia: type
         )
 
         // Check for duplicate reports first by fetching existing plates
