@@ -6,7 +6,8 @@ final class MockFileHelper: FileHelperProtocol {
     private var users: [User] = []
     private var currentUserEmail: String?
     private var authToken: String?
-    var isTokenExpired: Bool = false
+    // internal flag used by tests to simulate token expiry
+    private var tokenExpiredFlag: Bool = false
 
     public init() {}
 
@@ -59,7 +60,7 @@ final class MockFileHelper: FileHelperProtocol {
     }
 
     public func isTokenExpired() -> Bool {
-        return isTokenExpired
+        return tokenExpiredFlag
     }
 
     public func clearUsersFile() {

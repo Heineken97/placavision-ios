@@ -156,6 +156,18 @@ public final class CasosReportadosService {
     public struct PlatesResponse: Codable {
         public let plates: [Report]
     }
+
+    /// Convenience wrapper used by tests: fetches reports and returns the decoded array
+    public func fetchReports(completion: @escaping (Result<[Report], Error>) -> Void) {
+        self.loadPlates(refresh: false) { result in
+            switch result {
+            case .success(let page):
+                completion(.success(page.reports))
+            case .failure(let err):
+                completion(.failure(err))
+            }
+        }
+    }
     
     public enum ServiceError: LocalizedError {
         case decodingFailed

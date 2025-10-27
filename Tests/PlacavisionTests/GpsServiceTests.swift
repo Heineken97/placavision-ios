@@ -35,9 +35,9 @@ final class GpsServiceTests: XCTestCase {
         // Set up mock response
         let mockResponse = GpsResponse(latitude: 40.7128, longitude: -74.0060)
         mockRepo.gpsResponse = .success(mockResponse)
-        
+
         gpsService.startPolling { status in
-            if case .found(let lat, let lon) = status {
+            if case .location(let lat, let lon, _) = status {
                 XCTAssertEqual(lat, 40.7128, accuracy: 0.0001)
                 XCTAssertEqual(lon, -74.0060, accuracy: 0.0001)
                 exp.fulfill()

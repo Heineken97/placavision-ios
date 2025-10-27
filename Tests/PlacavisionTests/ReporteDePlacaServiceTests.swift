@@ -28,7 +28,7 @@ final class ReporteDePlacaServiceTests: XCTestCase {
             model: "M",
             brand: "B",
             year: "2020",
-            typeIncidence: "robbery",
+            type: "robbery",
             description: "Vehicle description",
             phone: "12345678"
         ) { result in
@@ -57,7 +57,7 @@ final class ReporteDePlacaServiceTests: XCTestCase {
             model: "M",
             brand: "B",
             year: "2020",
-            typeIncidence: "robbery",
+            type: "robbery",
             description: "Too short",  // Too short
             phone: "12345678"
         ) { result in
