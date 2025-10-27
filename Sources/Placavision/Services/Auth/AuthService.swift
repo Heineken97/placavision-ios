@@ -149,7 +149,11 @@ public final class AuthService {
             return .refreshing
         }
         
-        if let user = fileHelper.getCurrentUser(), !user.correo.isEmpty {
+        guard let user = fileHelper.getCurrentUser() else {
+            return .loggedOut
+        }
+        
+        if !user.correo.isEmpty {
             return .authenticated(user)
         }
         
@@ -234,6 +238,7 @@ public final class AuthService {
             default:
                 return false
             }
+        }
         
         public var description: String {
             switch self {

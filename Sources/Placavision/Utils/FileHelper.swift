@@ -16,11 +16,11 @@ public final class FileHelper {
         }
     }
 
-    public func getCurrentUser() -> User {
+    public func getCurrentUser() -> User? {
         guard let email = prefs.string(forKey: "current_user_email") else {
-            return User(correo: "", contrasena: "", nombre_usuario: nil, identificador_nacional: nil, telefono: nil, role: nil)
+            return nil
         }
-        return findUserByEmail(email) ?? User(correo: email, contrasena: "", nombre_usuario: nil, identificador_nacional: nil, telefono: nil, role: nil)
+        return findUserByEmail(email)
     }
 
     public func setCurrentUser(_ email: String) {

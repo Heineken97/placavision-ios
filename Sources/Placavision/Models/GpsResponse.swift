@@ -9,5 +9,6 @@ public struct GpsData: Codable {
     public let latitude: Double?
     public let longitude: Double?
     public let altitude: Double?
+    public let accuracy: Double?
     public let raw: String?
 }

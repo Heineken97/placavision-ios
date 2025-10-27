@@ -1,6 +1,8 @@
 import Foundation
 
-public enum APIClient {
+public class APIClient {
+    private static let apiConfig = APIConfig()
+    private static let serverConfig = ServerConfig()
     public enum APIError: Error, Equatable {
         case invalidURL
         case requestFailed(Error)
