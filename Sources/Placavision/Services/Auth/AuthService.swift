@@ -4,6 +4,7 @@ public final class AuthService {
     private let repository: RepositoryProtocol
     private let fileHelper: FileHelperProtocol
     private var refreshTimer: DispatchSourceTimer?
+    private var refreshTimerStarted: Bool = false
     private let refreshQueue = DispatchQueue(label: "com.placavision.auth", qos: .utility)
     private let tokenRefreshInterval: TimeInterval = 15 * 60 // 15 minutes
     private var lastLoginDate: Date?
@@ -181,12 +182,19 @@ public final class AuthService {
     }
     
     private func startTokenRefresh() {
-        refreshTimer?.resume()
+        guard let timer = refreshTimer, !refreshTimerStarted else { return }
+        timer.resume()
+        refreshTimerStarted = true
     }
     
     private func stopTokenRefresh() {
-        refreshTimer?.cancel()
-        refreshTimer = nil
+        if let timer = refreshTimer {
+            if refreshTimerStarted {
+                timer.cancel()
+            }
+            refreshTimer = nil
+            refreshTimerStarted = false
+        }
         isRefreshing = false
     }
     
