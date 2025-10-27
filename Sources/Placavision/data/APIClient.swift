@@ -1,12 +1,27 @@
 import Foundation
 
 public enum APIClient {
-    public enum APIError: Error {
+    public enum APIError: Error, Equatable {
         case invalidURL
         case requestFailed(Error)
         case invalidResponse
         case decodingError
         case invalidStatusCode(Int)
+        
+        public static func == (lhs: APIError, rhs: APIError) -> Bool {
+            switch (lhs, rhs) {
+            case (.invalidURL, .invalidURL),
+                 (.invalidResponse, .invalidResponse),
+                 (.decodingError, .decodingError):
+                return true
+            case (.invalidStatusCode(let l), .invalidStatusCode(let r)):
+                return l == r
+            case (.requestFailed(let l), .requestFailed(let r)):
+                return l.localizedDescription == r.localizedDescription
+            default:
+                return false
+            }
+        }
     }
 
     // AnyEncodable wrapper to encode Encodable existentials
@@ -26,7 +41,7 @@ public enum APIClient {
         }
     }
 
-    private static func makeRequest(endpoint: String, method: String, headers: [String: String]?, bodyData: Data?) throws -> URLRequest {
+    internal static func makeRequest(endpoint: String, method: String, headers: [String: String]?, bodyData: Data?) throws -> URLRequest {
         var url = URL(string: endpoint)
         // If endpoint is a relative path (no scheme), try to prepend APIConfig.baseURL
         if url == nil || url?.scheme == nil {
@@ -59,7 +74,7 @@ public enum APIClient {
     /// include X-API-Key and Authorization headers, mirroring the Android OkHttp interceptor behavior.
     public static var defaultHeadersProvider: (() -> [String: String]?)?
 
-    private static func perform(request: URLRequest, completion: @escaping (Result<Data, Error>) -> Void) {
+    internal static func perform(request: URLRequest, completion: @escaping (Result<Data, Error>) -> Void) {
         let task = session.dataTask(with: request) { data, response, error in
             if let error = error {
                 completion(.failure(APIError.requestFailed(error)))
@@ -83,6 +98,7 @@ public enum APIClient {
     private class PinningDelegate: NSObject, URLSessionDelegate {
         static let shared = PinningDelegate()
         private let localCertData: Data?
+        private let trustedHosts = ["172.20.10.3", "localhost", "127.0.0.1"]
 
         override init() {
             #if os(iOS) || os(macOS)
@@ -154,7 +170,7 @@ public enum APIClient {
         return URLSession(configuration: cfg, delegate: PinningDelegate.shared, delegateQueue: nil)
     }()
 
-    private static func encodeBody(_ body: Any?) -> Data? {
+    internal static func encodeBody(_ body: Any?) -> Data? {
         guard let body = body else { return nil }
         if let data = body as? Data { return data }
         if JSONSerialization.isValidJSONObject(body) {
@@ -168,7 +184,106 @@ public enum APIClient {
         return nil
     }
 
-    // Raw variants returning Data for callers that expect raw Data
+    // MARK: - Public API Methods
+    
+    public static func get(endpoint: String, headers: [String: String]? = nil, completion: @escaping (Result<[String: Any], Error>) -> Void) {
+        do {
+            let req = try makeRequest(endpoint: endpoint, method: "GET", headers: headers, bodyData: nil)
+            perform(request: req) { result in
+                switch result {
+                case .success(let data):
+                    do {
+                        if data.isEmpty { completion(.success([:])); return }
+                        let json = try JSONSerialization.jsonObject(with: data, options: [])
+                        if let dict = json as? [String: Any] { completion(.success(dict)) }
+                        else if let arr = json as? [Any] { completion(.success(["data": arr])) }
+                        else { completion(.failure(APIError.decodingError)) }
+                    } catch {
+                        completion(.failure(APIError.decodingError))
+                    }
+                case .failure(let error):
+                    completion(.failure(error))
+                }
+            }
+        } catch {
+            completion(.failure(error))
+        }
+    }
+    
+    public static func post(endpoint: String, body: Any?, headers: [String: String]? = nil, completion: @escaping (Result<[String: Any], Error>) -> Void) {
+        do {
+            let data = encodeBody(body)
+            let req = try makeRequest(endpoint: endpoint, method: "POST", headers: headers, bodyData: data)
+            perform(request: req) { result in
+                switch result {
+                case .success(let data):
+                    do {
+                        if data.isEmpty { completion(.success([:])); return }
+                        let json = try JSONSerialization.jsonObject(with: data, options: [])
+                        if let dict = json as? [String: Any] { completion(.success(dict)) }
+                        else if let arr = json as? [Any] { completion(.success(["data": arr])) }
+                        else { completion(.failure(APIError.decodingError)) }
+                    } catch {
+                        completion(.failure(APIError.decodingError))
+                    }
+                case .failure(let error):
+                    completion(.failure(error))
+                }
+            }
+        } catch {
+            completion(.failure(error))
+        }
+    }
+    
+    public static func put(endpoint: String, body: Any?, headers: [String: String]? = nil, completion: @escaping (Result<[String: Any], Error>) -> Void) {
+        do {
+            let data = encodeBody(body)
+            let req = try makeRequest(endpoint: endpoint, method: "PUT", headers: headers, bodyData: data)
+            perform(request: req) { result in
+                switch result {
+                case .success(let data):
+                    do {
+                        if data.isEmpty { completion(.success([:])); return }
+                        let json = try JSONSerialization.jsonObject(with: data, options: [])
+                        if let dict = json as? [String: Any] { completion(.success(dict)) }
+                        else { completion(.failure(APIError.decodingError)) }
+                    } catch {
+                        completion(.failure(APIError.decodingError))
+                    }
+                case .failure(let error):
+                    completion(.failure(error))
+                }
+            }
+        } catch {
+            completion(.failure(error))
+        }
+    }
+    
+    public static func delete(endpoint: String, headers: [String: String]? = nil, completion: @escaping (Result<[String: Any], Error>) -> Void) {
+        do {
+            let req = try makeRequest(endpoint: endpoint, method: "DELETE", headers: headers, bodyData: nil)
+            perform(request: req) { result in
+                switch result {
+                case .success(let data):
+                    do {
+                        if data.isEmpty { completion(.success([:])); return }
+                        let json = try JSONSerialization.jsonObject(with: data, options: [])
+                        if let dict = json as? [String: Any] { completion(.success(dict)) }
+                        else { completion(.failure(APIError.decodingError)) }
+                    } catch {
+                        completion(.failure(APIError.decodingError))
+                    }
+                case .failure(let error):
+                    completion(.failure(error))
+                }
+            }
+        } catch {
+            completion(.failure(error))
+        }
+    }
+    
+    // MARK: - Raw Data Methods
+    
     public static func postRaw(endpoint: String, body: Any?, headers: [String: String]? = nil, completion: @escaping (Result<Data, Error>) -> Void) {
         do {
             let data = encodeBody(body)
